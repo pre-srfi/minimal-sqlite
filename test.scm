@@ -1,3 +1,5 @@
+(import (minimal-sqlite))
+
 (define (disp . xs) (for-each display xs) (newline))
 
 (let ((db (sql-open "test.db")))

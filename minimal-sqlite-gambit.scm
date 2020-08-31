@@ -5,7 +5,6 @@
 
 ;;
 
-(##meta-info pkg-config "sqlite3")
 (c-declare "#include <string.h>")
 (c-declare "#include <sqlite3.h>")
 
