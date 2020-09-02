@@ -38,6 +38,34 @@
   (c-lambda (sqlite3) int64
     "sqlite3_last_insert_rowid"))
 
+(define %sqlite3-bind-parameter-index
+  (c-lambda (sqlite3-stmt nonnull-char-string) int
+    "sqlite3_bind_parameter_index"))
+
+(define %sqlite3-bind-null
+  (c-lambda (sqlite3-stmt int) int
+    "sqlite3_bind_null"))
+
+(define %sqlite3-bind-int64
+  (c-lambda (sqlite3-stmt int int64) int
+    "sqlite3_bind_int64"))
+
+(define %sqlite3-bind-double
+  (c-lambda (sqlite3-stmt int double) int
+    "sqlite3_bind_double"))
+
+(define %sqlite3-bind-text
+  (c-lambda (sqlite3-stmt int nonnull-char-string) int
+    "___return(sqlite3_bind_text(___arg1, ___arg2, ___arg3, -1, NULL));"))
+
+(define (%sqlite3-bind-blob %stmt index u8vector)
+  (unless (u8vector? u8vector)
+    (error "Not a u8vector:" u8vector))
+  ((c-lambda (sqlite3-stmt int scheme-object int) int
+     "void *bytes = ___CAST(void *, ___BODY(___arg3));
+      ___return(sqlite3_bind_blob(___arg1, ___arg2, bytes, ___arg4, NULL));")
+   %stmt index u8vector (u8vector-length u8vector)))
+
 (define %sqlite3-column-value
   (c-lambda (sqlite3-stmt int) sqlite3-value
     "sqlite3_column_value"))
@@ -150,18 +178,57 @@
                              columns)))))
           (else (raise-sqlite-db-error db 'sqlite3_step err)))))
 
-(define (internal-prepare db stmt)
-  (let* ((retvals (%sqlite3-prepare-v2 db stmt))
-         (err     (vector-ref retvals 0))
-         (%stmt   (vector-ref retvals 1))
-         (tail    (vector-ref retvals 2)))
-    (raise-sqlite-db-error db 'sqlite3_prepare_v2 err)
-    (when tail
-      (error "cannot execute more than one SQL statement at once"))
-    %stmt))
-
 (define (internal-finalize db %stmt)
   (raise-sqlite-db-error db 'sqlite3_finalize (%sqlite3-finalize %stmt)))
+
+(define (internal-bind-parameter db %stmt i value)
+  (cond ((not value)
+         (%sqlite3-bind-null %stmt i))
+        ((string? value)
+         (%sqlite3-bind-text %stmt i value))
+        ((u8vector? value)
+         (%sqlite3-bind-blob %stmt i value))
+        ((and (integer? value) (exact-integer? value))
+         (%sqlite3-bind-int64 %stmt i value))
+        ((real? value)
+         (%sqlite3-bind-double %stmt i (inexact value)))
+        (else
+         (error "Cannot represent value in SQLite:" value))))
+
+(define (internal-prepare db stmt)
+  (let ((sql-string (if (string? stmt) stmt (car stmt)))
+        (sql-params (if (string? stmt) '()  (cdr stmt))))
+    (unless (string? sql-string)
+      (error "SQL not a string:" sql-string))
+    (let* ((retvals (%sqlite3-prepare-v2 db sql-string))
+           (err     (vector-ref retvals 0))
+           (%stmt   (vector-ref retvals 1))
+           (tail    (vector-ref retvals 2)))
+      (raise-sqlite-db-error db 'sqlite3_prepare_v2 err)
+      (with-exception-catcher
+       (lambda (err)
+         (internal-finalize db %stmt)
+         (raise err))
+       (lambda ()
+         (when tail
+           (error "Cannot execute more than one SQL statement at once"))
+         (let loop ((plist sql-params))
+           (cond ((null? plist)
+                  %stmt)
+                 ((and (pair? plist)
+                       (symbol? (car plist))
+                       (pair? (cdr plist)))
+                  (let ((name (car plist))
+                        (value (cadr plist)))
+                    (let ((i (%sqlite3-bind-parameter-index
+                              %stmt
+                              (string-append "@" (symbol->string name)))))
+                      (when (<= i 0) (error "No such parameter:" name))
+                      (internal-bind-parameter db %stmt i value)))
+                  (loop (cddr plist)))
+                 (else
+                  (error "SQL params are not a valid property list:"
+                         sql-params)))))))))
 
 ;;
 
