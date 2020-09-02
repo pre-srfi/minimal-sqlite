@@ -23,11 +23,11 @@
 ;;
 
 (define %sqlite3-errstr
-  (c-lambda (int) nonnull-char-string
+  (c-lambda (int) nonnull-UTF-8-string
     "sqlite3_errstr"))
 
 (define %sqlite3-errmsg
-  (c-lambda (sqlite3) nonnull-char-string
+  (c-lambda (sqlite3) nonnull-UTF-8-string
     "sqlite3_errmsg"))
 
 (define %sqlite3-set-last-insert-rowid
@@ -39,7 +39,7 @@
     "sqlite3_last_insert_rowid"))
 
 (define %sqlite3-bind-parameter-index
-  (c-lambda (sqlite3-stmt nonnull-char-string) int
+  (c-lambda (sqlite3-stmt nonnull-UTF-8-string) int
     "sqlite3_bind_parameter_index"))
 
 (define %sqlite3-bind-null
@@ -55,7 +55,7 @@
     "sqlite3_bind_double"))
 
 (define %sqlite3-bind-text
-  (c-lambda (sqlite3-stmt int nonnull-char-string) int
+  (c-lambda (sqlite3-stmt int nonnull-UTF-8-string) int
     "char *copy = strdup(___arg3);
      ___return(sqlite3_bind_text(___arg1, ___arg2, copy, -1, NULL));"))
 
@@ -84,7 +84,7 @@
     "sqlite3_value_double"))
 
 (define %sqlite3-value-text
-  (c-lambda (sqlite3-value) char-string
+  (c-lambda (sqlite3-value) UTF-8-string
     "sqlite3_value_text"))
 
 (define %sqlite3-finalize
@@ -118,7 +118,7 @@
      ___return(vec);"))
 
 (define %sqlite3-prepare-v2
-  (c-lambda (sqlite3 nonnull-char-string) scheme-object
+  (c-lambda (sqlite3 nonnull-UTF-8-string) scheme-object
     "___SCMOBJ scheme_stmt;
      ___SCMOBJ scheme_vec;
      ___SCMOBJ scheme_err;
@@ -136,7 +136,7 @@
      ___return(scheme_vec);"))
 
 (define %sqlite3-open
-  (c-lambda (nonnull-char-string) scheme-object
+  (c-lambda (nonnull-UTF-8-string) scheme-object
     "___SCMOBJ scheme_db;
     ___SCMOBJ scheme_err;
     sqlite3 *db;
