@@ -219,16 +219,16 @@
            (cond ((null? plist)
                   %stmt)
                  ((and (pair? plist)
-                       (symbol? (car plist))
-                       (pair? (cdr plist)))
-                  (let ((name (car plist))
-                        (value (cadr plist)))
-                    (let ((i (%sqlite3-bind-parameter-index
-                              %stmt
-                              (string-append "@" (symbol->string name)))))
-                      (when (<= i 0) (error "No such parameter:" name))
-                      (internal-bind-parameter db %stmt i value)))
-                  (loop (cddr plist)))
+                       (pair? (cdr plist))
+                       (symbol? (car plist)))
+                  (let* ((name (car plist))
+                         (value (cadr plist))
+                         (i (%sqlite3-bind-parameter-index
+                             %stmt
+                             (string-append "@" (symbol->string name)))))
+                    (when (<= i 0) (error "No such parameter:" name))
+                    (internal-bind-parameter db %stmt i value)
+                    (loop (cddr plist))))
                  (else
                   (error "SQL params are not a valid property list:"
                          sql-params)))))))))
