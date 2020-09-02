@@ -56,7 +56,8 @@
 
 (define %sqlite3-bind-text
   (c-lambda (sqlite3-stmt int nonnull-char-string) int
-    "___return(sqlite3_bind_text(___arg1, ___arg2, ___arg3, -1, NULL));"))
+    "char *copy = strdup(___arg3);
+     ___return(sqlite3_bind_text(___arg1, ___arg2, copy, -1, NULL));"))
 
 (define (%sqlite3-bind-blob %stmt index u8vector)
   (unless (u8vector? u8vector)
