@@ -3,6 +3,14 @@
     (lambda (x)
       (if (eof-object? x) (reverse xs) (set! xs (cons x xs))))))
 
+(define (plist-for-each proc plist)
+  (let loop ((tail plist))
+    (cond ((and (pair? tail) (symbol? (car tail)) (pair? (cdr tail)))
+           (proc (car tail) (cadr tail))
+           (loop (cddr tail)))
+          ((not (null? tail))
+           (error "Not a valid property list:" plist)))))
+
 ;;
 
 (c-declare "#include <string.h>")
@@ -217,23 +225,14 @@
        (lambda ()
          (when tail
            (error "Cannot execute more than one SQL statement at once"))
-         (let loop ((plist sql-params))
-           (cond ((null? plist)
-                  %stmt)
-                 ((and (pair? plist)
-                       (pair? (cdr plist))
-                       (symbol? (car plist)))
-                  (let* ((name (car plist))
-                         (value (cadr plist))
-                         (i (%sqlite3-bind-parameter-index
-                             %stmt
-                             (string-append "@" (symbol->string name)))))
-                    (when (<= i 0) (error "No such parameter:" name))
-                    (internal-bind-parameter db %stmt i value)
-                    (loop (cddr plist))))
-                 (else
-                  (error "SQL params are not a valid property list:"
-                         sql-params)))))))))
+         (plist-for-each
+          (lambda (name value)
+            (let ((i (%sqlite3-bind-parameter-index
+                      %stmt (string-append "@" (symbol->string name)))))
+              (when (<= i 0) (error "No such parameter:" name))
+              (internal-bind-parameter db %stmt i value)))
+          sql-params)
+         %stmt)))))
 
 ;;
 
