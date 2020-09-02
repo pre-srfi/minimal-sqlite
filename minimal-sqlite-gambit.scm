@@ -182,18 +182,21 @@
   (raise-sqlite-db-error db 'sqlite3_finalize (%sqlite3-finalize %stmt)))
 
 (define (internal-bind-parameter db %stmt i value)
-  (cond ((not value)
-         (%sqlite3-bind-null %stmt i))
-        ((string? value)
-         (%sqlite3-bind-text %stmt i value))
-        ((u8vector? value)
-         (%sqlite3-bind-blob %stmt i value))
-        ((and (integer? value) (exact-integer? value))
-         (%sqlite3-bind-int64 %stmt i value))
-        ((real? value)
-         (%sqlite3-bind-double %stmt i (inexact value)))
-        (else
-         (error "Cannot represent value in SQLite:" value))))
+  (raise-sqlite-db-error
+   db
+   'sqlite3_bind_*
+   (cond ((not value)
+          (%sqlite3-bind-null %stmt i))
+         ((string? value)
+          (%sqlite3-bind-text %stmt i value))
+         ((u8vector? value)
+          (%sqlite3-bind-blob %stmt i value))
+         ((and (integer? value) (exact-integer? value))
+          (%sqlite3-bind-int64 %stmt i value))
+         ((real? value)
+          (%sqlite3-bind-double %stmt i (inexact value)))
+         (else
+          (error "Cannot represent value in SQLite:" value)))))
 
 (define (internal-prepare db stmt)
   (let ((sql-string (if (string? stmt) stmt (car stmt)))
