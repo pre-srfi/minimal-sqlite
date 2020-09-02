@@ -64,7 +64,8 @@
     (error "Not a u8vector:" u8vector))
   ((c-lambda (sqlite3-stmt int scheme-object int) int
      "void *bytes = ___CAST(void *, ___BODY(___arg3));
-      ___return(sqlite3_bind_blob(___arg1, ___arg2, bytes, ___arg4, NULL));")
+      ___return(sqlite3_bind_blob(___arg1, ___arg2, bytes, ___arg4,
+        SQLITE_TRANSIENT));")
    %stmt index u8vector (u8vector-length u8vector)))
 
 (define %sqlite3-column-value
