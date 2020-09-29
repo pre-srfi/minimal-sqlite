@@ -43,7 +43,9 @@ value. We set it to 0 before executing the statement. If it stays
 zero, we raise an exception. Else we return the new row ID. While
 SQLite does not have an official value to denote an invalid row ID,
 zero is a de facto standard because SQLite row IDs start counting up
-from 1 unless you manually set the counter to less than 1.]
+from 1 unless you manually set the counter to less than 1. Note that
+SQLite row IDs can be negative, though only if the row ID counter is
+manually set to a negative value.]
 
 (**sql-get-all** _database_ _statement_ [_mapfun_ _accumulator_]) => _state_
 
