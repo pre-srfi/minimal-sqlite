@@ -47,7 +47,8 @@ from 1 unless you manually set the counter to less than 1. Note that
 SQLite row IDs can be negative, though only if the row ID counter is
 manually set to a negative value.)
 
-(**sql-get-all** _database_ _statement_ [_map-row_ _accumulator_]) => _state_
+(**sql-get-all** _database_ _statement_ [_map-row_ _row-accumulator_])
+=> _state_
 
 Execute one SQL _statement_ like **sql-do** but also fetch any and all
 resulting rows.
@@ -57,17 +58,17 @@ _map-row_ gets as many arguments as there are result columns. The
 arguments use Scheme datatypes: integer, real, string. SQL blobs
 become Scheme bytevectors. SQL null becomes Scheme `#f`.
 
-Each _map-row_ should return one value. _accumulator_ is called with
-that value. In the end, _accumulator_ is tail-called with an
+Each _map-row_ should return one value. _row-accumulator_ is called
+with that value. In the end, _row-accumulator_ is tail-called with an
 end-of-file object. Then it should return its state, which becomes the
-return value from **sql-get-all**. If _accumulator_ returns multiple
-values, all of them are preserved.
+return value from **sql-get-all**. If _row-accumulator_ returns
+multiple values, all of them are preserved.
 
 If _map-row_ is not supplied, the default is `vector` which turns each
 result row into a Scheme vector.
 
-If _accumulator_ is not supplied, the default is `list-accumulator`
-from SRFI 158. It collects the rows into a list.
+If _row-accumulator_ is not supplied, the default is
+`list-accumulator` from SRFI 158. It collects the rows into a list.
 
 (**sql-get-one** _database_ _statement_ [_map-row_]) => _values_
 
