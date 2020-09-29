@@ -75,13 +75,16 @@ If _row-accumulator_ is not supplied, the default is
 Like **sql-get-all** but expects exactly one result row. If there are
 no rows, or if there is more than row, an exception is raised.
 
-`(apply map-row columns)` is tail-called with the sole result row and
-returns the result. The details are as for **sql-get-all**. However,
-if _map-row_ returns multiple values, **sql-get-one** preserves them
-all.
+Return the values from tail-calling `(apply map-row columns)` with the
+sole result row. the result. The details are as for **sql-get-all**.
+However, if _map-row_ returns multiple values, all of them are
+preserved.
 
 If _map-row_ is not supplied, the default is `values` which returns
-the columns of the row as multiple values.
+the columns of the row as multiple values. `values` is a good default
+because a query returning a single SQL value returns a single Scheme
+value. The Scheme programmer will not have to unpack that value from a
+one-element vector or list.
 
 # Implementation
 
