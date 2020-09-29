@@ -36,7 +36,7 @@ the new row. Raise an exception if the row ID is not available.
 
 Row IDs in SQL are an implementation-defined feature which is somewhat
 brittle in practice. Hence the use of row IDs is an anti-pattern. For
-the sake of convenience We provide them anyway. Use with caution.
+the sake of convenience we provide them anyway. Use with caution.
 
 (**Implementation note**: Each SQLite connection keeps a global row ID
 value. We set it to 0 before executing the statement. If it stays
@@ -44,11 +44,6 @@ zero, we raise an exception. Else we return the new row ID. While
 SQLite does not have an official value to denote an invalid row ID,
 zero is a de facto standard because SQLite row IDs start counting up
 from 1 unless you manually set the counter to less than 1.]
-
-expects exactly one row back and does (apply mapfun
-row). The mapfun may return multiple values, which are returned
-from sql-query-one. It raises an exception if it gets no rows, or if
-it gets more than one row.
 
 (**sql-get-all** _database_ _statement_ [_mapfun_ _accumulator_]) => _state_
 
