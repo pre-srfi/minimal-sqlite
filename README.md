@@ -47,40 +47,40 @@ from 1 unless you manually set the counter to less than 1. Note that
 SQLite row IDs can be negative, though only if the row ID counter is
 manually set to a negative value.]
 
-(**sql-get-all** _database_ _statement_ [_mapfun_ _accumulator_]) => _state_
+(**sql-get-all** _database_ _statement_ [_map-row_ _accumulator_]) => _state_
 
 Execute one SQL _statement_ like **sql-do** but also fetch any and all
 resulting rows.
 
-For each row, call `(apply mapfun columns)`. In other words, _mapfun_
-gets as many arguments as there are result columns. The arguments use
-Scheme datatypes: integer, real, string. SQL blobs become Scheme
-bytevectors. SQL null becomes Scheme `#f`.
+For each row, call `(apply map-row columns)`. In other words,
+_map-row_ gets as many arguments as there are result columns. The
+arguments use Scheme datatypes: integer, real, string. SQL blobs
+become Scheme bytevectors. SQL null becomes Scheme `#f`.
 
-Each _mapfun_ should return one value. _accumulator_ is called with
+Each _map-row_ should return one value. _accumulator_ is called with
 that value. In the end, _accumulator_ is tail-called with an
 end-of-file object. Then it should return its state, which becomes the
 return value from **sql-get-all**. If _accumulator_ returns multiple
 values, all of them are preserved.
 
-If _mapfun_ is not supplied, the default is `vector` which turns each
+If _map-row_ is not supplied, the default is `vector` which turns each
 result row into a Scheme vector.
 
 If _accumulator_ is not supplied, the default is `list-accumulator`
 from SRFI 158. It collects the rows into a list.
 
-(**sql-get-one** _database_ _statement_ [_mapfun_]) => _values_
+(**sql-get-one** _database_ _statement_ [_map-row_]) => _values_
 
 Like **sql-get-all** but expects exactly one result row. If there are
 no rows, or if there is more than row, an exception is raised.
 
-`(apply mapfun columns)` is tail-called with the sole result row and
+`(apply map-row columns)` is tail-called with the sole result row and
 returns the result. The details are as for **sql-get-all**. However,
-if _mapfun_ returns multiple values, **sql-get-one** preserves them
+if _map-row_ returns multiple values, **sql-get-one** preserves them
 all.
 
-If _mapfun_ is not supplied, the default is `values` which returns the
-columns of the row as multiple values.
+If _map-row_ is not supplied, the default is `values` which returns
+the columns of the row as multiple values.
 
 # Implementation
 
