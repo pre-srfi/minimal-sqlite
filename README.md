@@ -88,6 +88,9 @@ Gambit FFI implementation attached.
 
 # Acknowledgements
 
+This API was inspired by the [Bigloo SQLite
+module](https://www-sop.inria.fr/mimosa/fp/Bigloo/manual-chapter17.html).
+
 # References
 
 # Copyright
