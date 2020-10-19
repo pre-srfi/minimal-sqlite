@@ -56,19 +56,27 @@ resulting rows.
 For each row, call `(apply map-row columns)`. In other words,
 _map-row_ gets as many arguments as there are result columns. The
 arguments use Scheme datatypes: integer, real, string. SQL blobs
-become Scheme bytevectors. SQL null becomes Scheme `#f`.
+become Scheme bytevectors.
 
-Each _map-row_ should return one value. _row-accumulator_ is called
-with that value. In the end, _row-accumulator_ is tail-called with an
-end-of-file object. Then it should return its state, which becomes the
-return value from **sql-get-all**. If _row-accumulator_ returns
-multiple values, all of them are preserved.
+SQL `NULL` becomes Scheme `null` for compatibility with
+[SRFI 180](http://srfi.schemers.org/srfi-180/srfi-180.html)
+and with other SQL databases that have more types.
+Notably, `#t` and `#f` would be the natural values
+of a boolean column, making `#f` unusable as `NULL`.
 
-If _map-row_ is not supplied, the default is `vector` which turns each
+Each call to _map-row_ should return one value
+and the _row-accumulator_ is called with that value.
+Finally, _row-accumulator_ is tail-called with an
+end-of-file object.
+Whatever _row-accumulator_ returns
+(possibly multiple values) becomes the
+return value from **sql-get-all**.
+
+If _map-row_ is not supplied, the default is `vector`, which turns each
 result row into a Scheme vector.
 
 If _row-accumulator_ is not supplied, the default is
-`list-accumulator` from SRFI 158. It collects the rows into a list.
+`list-accumulator` from SRFI 158, which collects the rows into a list.
 
 (**sql-get-one** _database_ _statement_ [_map-row_]) => _values_
 
@@ -76,7 +84,7 @@ Like **sql-get-all** but expects exactly one result row. If there are
 no rows, or if there is more than row, an exception is raised.
 
 Return the values from tail-calling `(apply map-row columns)` with the
-sole result row. the result. The details are as for **sql-get-all**.
+sole result row, the result. The details are as for **sql-get-all**.
 However, if _map-row_ returns multiple values, all of them are
 preserved.
 
