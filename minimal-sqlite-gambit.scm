@@ -168,7 +168,7 @@
 
 (define (internal-value-to-scheme value)
   (let ((type (%sqlite3-value-type value)))
-    (cond ((= type SQLITE_NULL)    #f)
+    (cond ((= type SQLITE_NULL)    'null)
           ((= type SQLITE_BLOB)    (%sqlite3-value-blob   value))
           ((= type SQLITE_TEXT)    (%sqlite3-value-text   value))
           ((= type SQLITE_INTEGER) (%sqlite3-value-int64  value))
@@ -195,7 +195,7 @@
   (raise-sqlite-db-error
    db
    'sqlite3_bind_*
-   (cond ((not value)
+   (cond ((eq? 'null value)
           (%sqlite3-bind-null %stmt i))
          ((string? value)
           (%sqlite3-bind-text %stmt i value))
